@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<title>Forsa tamweel's Accounts</title>
+	
+</h:head>
+
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+	integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+	crossorigin="anonymous"></link>
+
+
+
+<div class="card">
+    <h:form>
+        <p:growl id="messages"/>
+
+        <p:menubar>
+            <p:submenu label="Calcul" icon="pi pi-fw pi-file">
+               
+                <p:menuitem value="Delete" outcome= "/admin/calcul" icon="pi pi-fw pi-trash"/>
+                <p:divider />
+                <p:menuitem value="Export" icon="pi pi-fw pi-external-link"/>
+            </p:submenu>
+
+         
+
+            <p:submenu label="Payments" icon="pi pi-fw pi-user">
+                <p:menuitem value="New" outcome= "/admin/pay" icon="pi pi-fw pi-user-plus"/>                         
+            </p:submenu>
+
+         
+            <p:submenu label="Transaction" icon="pi pi-fw pi-user">
+                <p:menuitem value="New" outcome= "/admin/transaction" icon="pi pi-fw pi-user-plus"/>                               
+            </p:submenu>
+
+            <p:divider layout="vertical"/>
+
+
+            <f:facet name="options">
+                <div class="ui-input-icon-left p-mr-2">
+                    <i class="pi pi-fw pi-search" />
+                    <p:inputText placeholder="Search"/>
+                </div>
+                <p:button value="Logout" outcome= "/login" icon="pi pi-fw pi-sign-out" styleClass="ui-button-info"/>
+            </f:facet>
+        </p:menubar>
+    </h:form>
+</div>
+
+
+<div class="container">
+		<h2>Add new Account </h2>
+		<hr>
+		
+
+<h:panelGroup columns="2">
+<h:form>
+
+<tr><td><h:outputText value="Identifier"></h:outputText></td>
+<td><h:inputText value="#{BankController.userIdentifier}" placeholder="Agency Name" class="form-control mb-4 col-4"></h:inputText></td></tr>
+
+<div class="card">
+        <div class="ui-fluid p-formgrid p-grid">
+        
+        <div class="p-field p-col-12 p-md-4">
+                <p:outputLabel for="@next" value="Account Type"/>
+                <p:selectOneMenu id="group" value="#{BankController.bankAccountType}">
+                    <f:selectItem itemLabel="Select One" itemValue=""/>
+                    <f:selectItems value="#{BankController.bankAccountTypes}"/>
+                </p:selectOneMenu>
+                    
+            </div>
+            </div>
+</div>
+                <tr><td colspan="2"> <h:commandButton value="Add Account"
+action="#{BankController.addBankAccount()}" class="btn btn-success col-2" /></td></tr>
+
+
+</h:form>
+</h:panelGroup> 
+    <div class="card">
+
+<h:form>
+        <p:dataTable var="account" value="#{BankController.accounts}">
+            <p:column headerText="Number">
+                <h:outputText value="#{account.number}" />
+            </p:column>
+
+            <p:column headerText="Type">
+                <h:outputText value="#{account.bankAccType.bankAccountType}" />
+            </p:column>
+
+            <p:column headerText="Saldos">
+                <h:outputText value="#{account.saldos}" />
+            </p:column>
+
+            <p:column headerText="Id">
+                <h:outputText value="#{account.id}" />
+            </p:column>
+
+            
+  <p:column headerText="Action">
+  
+  
+  <p:commandButton styleClass="rounded-button ui-button-danger" icon="pi pi-trash" action="#{BankController.removeAccount(account.id)}"  >
+            <p:confirm header="Confirmation" message="Do you want to delete this Account" icon="pi pi-info-circle"/>
+        </p:commandButton>
+  
+</p:column>          
+            
+        </p:dataTable>
+        
+   <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350" severity="warn">
+            <p:commandButton value="Yes" icon="pi pi-check" type="button" onclick="window.location.reload(false)" styleClass="ui-confirmdialog-yes" />
+            <p:commandButton value="No" icon="pi pi-times" type="button" styleClass="ui-confirmdialog-no ui-button-flat"/>      
+        </p:confirmDialog>     
+</h:form>
+        </div>    
+
+
+
+
+
+</hr>
+<!-- <div align="center">
+<h:link outcome="/admin/welcome" value="Back to agency List"></h:link>
+</div> -->
+</div>
+
+</html>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<title>Forsa tamweel's Payments</title>
+	
+</h:head>
+
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+	integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+	crossorigin="anonymous"></link>
+
+
+<div class="card">
+    <h:form>
+        <p:growl id="messages"/>
+
+        <p:menubar>
+            <p:submenu label="Calcul" icon="pi pi-fw pi-file">
+               
+                <p:menuitem value="Try" outcome= "/admin/calcul" icon="pi pi-fw pi-trash"/>
+                <p:divider />
+                <p:menuitem value="Currency" outcome= "/currency"  icon="pi pi-fw pi-external-link"/>
+            </p:submenu>
+
+         
+
+            <p:submenu label="Payments" icon="pi pi-credit-card">
+                <p:menuitem value="New" outcome= "/admin/pay" icon="pi pi-fw pi-user-plus"/>                         
+            </p:submenu>
+
+         
+            <p:submenu label="Transaction" icon="pi pi-id-card">
+                <p:menuitem value="New" outcome= "/admin/transaction" icon="pi pi-fw pi-user-plus"/>                               
+            </p:submenu>
+
+            <p:divider layout="vertical"/>
+
+
+            <f:facet name="options">
+                <div class="ui-input-icon-left p-mr-2">
+                    <i class="pi pi-fw pi-search" />
+                    <p:inputText placeholder="Search"/>
+                </div>
+                <p:button value="Logout" outcome= "/login" icon="pi pi-fw pi-sign-out" styleClass="ui-button-info"/>
+            </f:facet>
+        </p:menubar>
+    </h:form>
+</div>
+
+
+
+
+<div class="container">
+		<h2>Add new Pay/withdrawl </h2>
+		<hr>
+		
+
+<h:panelGroup columns="2">
+<h:form>
+
+<tr><td><h:outputText value="Destined"></h:outputText></td>
+<td><h:inputText value="#{PaymentController.destinedBankAccountNumber}" placeholder="Agency Name" class="form-control mb-4 col-4"></h:inputText></td></tr>
+
+
+<tr><td><h:outputText value="Cuurency"></h:outputText></td>
+<td><h:inputText value="#{PaymentController.sourceCurrencyType}" placeholder="Agency Name" class="form-control mb-4 col-4"></h:inputText></td></tr>
+<tr><td><h:outputText value="balance"></h:outputText></td>
+<td><h:inputText value="#{PaymentController.balance}" placeholder="Agency Name" class="form-control mb-4 col-4"></h:inputText></td></tr>
+
+
+<tr><td colspan="2"> <h:commandButton value="Pay"
+action="#{PaymentController.verser()}" class="btn btn-success col-2" /></td></tr>
+
+<tr><td colspan="2"> <h:commandButton value="Withrawl"
+action="#{PaymentController.retrait()}" class="btn btn-success col-2" /></td></tr>
+
+</h:form>
+
+<h:form>
+    <div class="card">
+        <p:dataTable var="pay" value="#{PaymentController.payments}">
+         <p:column headerText="Id">
+                <h:outputText value="#{pay.id}" />
+            </p:column>
+            
+            <p:column headerText="Currency">
+                <h:outputText value="#{pay.sourceCurrencyType.name}" />
+            </p:column>
+
+            <p:column headerText="In">
+                <h:outputText value="#{pay.destinedBankAccount.number}" />
+            </p:column>
+
+            <p:column headerText="Saldos">
+                <h:outputText value="#{pay.balance}" />
+            </p:column>
+
+            
+            
+             <p:column headerText="Date">
+                <h:outputText value="#{pay.date}" />
+            </p:column>
+        </p:dataTable>
+    </div>
+</h:form>
+
+
+</h:panelGroup> 
+
+
+
+</hr>
+<!-- <div align="center">
+<h:link outcome="/admin/welcome" value="Back to agency List"></h:link>
+</div> -->
+</div>
+
+</html>
