@@ -1,112 +1,123 @@
-package com.example.demo.service;
+package com.ii.app.services;
 
-import java.text.NumberFormat;
-import java.text.ParseException;
-
+import com.ii.app.dto.in.PaymentIn;
+import com.ii.app.dto.out.PaymentOut;
+import com.ii.app.exceptions.ApiException;
+import com.ii.app.mappers.PaymentMapper;
+import com.ii.app.models.BankAccount;
+import com.ii.app.models.CurrencyType;
+import com.ii.app.models.Payment;
+import com.ii.app.models.Saldo;
+import com.ii.app.repositories.BankAccountRepository;
+import com.ii.app.repositories.CurrencyTypeRepository;
+import com.ii.app.repositories.PaymentRepository;
+import com.ii.app.services.interfaces.PaymentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.NotNull;
+
+import java.sql.Array;
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
-	
-	private final NumberFormat nfPercent;
-    private final NumberFormat nfCurrency;
+	@Autowired
+	PaymentRepository paymentRepository;
 
-    PaymentServiceImpl()
-    {
-        //percentage formatter
-        nfPercent = NumberFormat.getPercentInstance();
-        nfPercent.setMinimumFractionDigits(2);
-        nfPercent.setMaximumFractionDigits(4);
+	@Autowired
+	CurrencyTypeRepository currencyTypeRepository;
 
-        //currency formatter
-        nfCurrency = NumberFormat.getCurrencyInstance();
-        nfCurrency.setMinimumFractionDigits(2);
-        nfCurrency.setMaximumFractionDigits(2);
-    } 
-    
-	@Override
-	public String formatCurrency(double number) {
-		return nfCurrency.format(number);
-	}
+	@Autowired
+	BankAccountRepository bankAccountRepository;
 
-	@Override
-	public String formatPercent(double number) {
-		return nfPercent.format(number);
-	}
+	@Autowired
+	PaymentMapper paymentMapper;
+
+	/*
+	 * @Autowired public PaymentServiceImpl(PaymentRepository paymentRepository,
+	 * CurrencyTypeRepository currencyTypeRepository, BankAccountRepository
+	 * bankAccountRepository, PaymentMapper paymentMapper) { this.paymentRepository
+	 * = paymentRepository; this.currencyTypeRepository = currencyTypeRepository;
+	 * this.bankAccountRepository = bankAccountRepository; this.paymentMapper =
+	 * paymentMapper; }
+	 */
 
 	@Override
-	public double stringToPercent(String s) throws ParseException {
-		return nfPercent.parse(s).doubleValue();
-	}
-
-	@Override
-	public double getMonthlyInterestRate(double interestRate) {
-		return interestRate / 100 / 12;
-	}
-
-	@Override
-	public double pmt(double r, int nper, double pv, double fv, int type) {
-		if (r == 0) {
-            return -(pv + fv) / nper;
-        }
-
-        double pmt = r / (Math.pow(1 + r, nper) - 1) * -(pv * Math.pow(1 + r, nper) + fv);
-
-        if (type == 1) {
-            pmt /= (1 + r);
-        }
-
-        return pmt;
-	}
-
-	@Override
-	public double pmt(double r, int nper, double pv, double fv) {
-		return pmt(r, nper, pv, fv, 0);
-	}
-
-	@Override
-	public double pmt(double r, int nper, double pv) {
-		return pmt(r, nper, pv, 0, 0);
-	}
-
-	@Override
-	public double fv(double r, int nper, double c, double pv, int type) {
-		if (r == 0) return pv;
-
-        
-        //we are going in reverse, we multiply by 1 plus interest rate.
-        if (type == 1) {
-            c *= (1 + r);
-        }
-
-        double fv = -((Math.pow(1 + r, nper) - 1) / r * c + pv * Math.pow(1 + r, nper));
-
-        
-        return fv;
-	}
-
-	@Override
-	public double fv(double r, int nper, double c, double pv) {
-		 return fv(r, nper, c, pv, 0);
-	}
-
-	@Override
-	public double ipmt(double r, int per, int nper, double pv, double fv, int type) {
-
-        double ipmt = fv(r, per - 1, pmt(r, nper, pv, fv, type), pv, type) * r;
-
-        if (type == 1) {
-            ipmt /= (1 + r);
-        }
-
-        return ipmt;
-	}
-
-	@Override
-	public double ppmt(double r, int per, int nper, double pv, double fv, int type) {
+	public PaymentOut create(@NotNull PaymentIn paymentIn) {
+		BankAccount bankAccount = bankAccountRepository
+				.findByNumberAndRemovedFalse(paymentIn.getDestinedBankAccountNumber())
+				.orElseThrow(() -> new RuntimeException("Source bank account not found"));
+		CurrencyType currencyType = currencyTypeRepository.findByName(paymentIn.getSourceCurrencyType())
+				.orElseThrow(() -> new RuntimeException("Source currency not found"));
 		
-		// Calculated payment per period - interest portion of that period.
-        return pmt(r, nper, pv, fv, type) - ipmt(r, per, nper, pv, fv, type);
+		Saldo destinedSaldo = bankAccount.getSaldos().stream().filter(e ->  {
+		      System.out.println("//////////////////////////////////////////");
+
+		      System.out.println(e.getCurrencyType().getName());
+		      System.out.println(currencyType.getName());
+
+		          return e.getCurrencyType().getName().equals(currencyType.getName());
+		      
+		  }).findFirst().get();
+		System.out.println("§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§");
+		
+		System.out.println(paymentIn.getBalance());
+		destinedSaldo.setBalance(destinedSaldo.getBalance().add(paymentIn.getBalance()));
+		System.out.println(destinedSaldo.getBalance());
+
+		return paymentMapper.entityToDto(
+				paymentRepository.save(Payment.builder().date(Instant.now()).balance(destinedSaldo.getBalance())
+						.sourceCurrencyType(currencyType).destinedBankAccount(bankAccount).build()));
 	}
 
+	@Override
+	public PaymentOut withdraw(@NotNull PaymentIn paymentIn) {
+		BankAccount bankAccount = bankAccountRepository
+				.findByNumberAndRemovedFalse(paymentIn.getDestinedBankAccountNumber())
+				.orElseThrow(() -> new RuntimeException("Source bank account not found"));
+		CurrencyType currencyType = currencyTypeRepository.findByName(paymentIn.getSourceCurrencyType())
+				.orElseThrow(() -> new RuntimeException("Source currency not found"));
+		
+		/*
+		 * Saldo destinedSaldo = bankAccount.getSaldos().stream().filter(e ->
+		 * e.getCurrencyType() == currencyType) .findFirst().orElseThrow( () -> new
+		 * RuntimeException("Destined bank account has no saldo with provided currency type"
+		 * ));
+		 */
+				
+		Saldo destinedSaldo = bankAccount.getSaldos().stream().filter(e ->  {
+		      
+		          return e.getCurrencyType().getName().equals(currencyType.getName());
+		      
+		  }).findFirst().orElseThrow(
+					() -> new RuntimeException("Destined bank account has no saldo with provided currency type"));
+		
+		
+		
+		if (destinedSaldo.getBalance().compareTo(paymentIn.getBalance()) <= 0) {
+			throw new ApiException("Exception.notEnoughBalanceSaldo", null);
+		}
+		destinedSaldo.setBalance(destinedSaldo.getBalance().subtract(paymentIn.getBalance()));
+
+		return paymentMapper.entityToDto(
+				paymentRepository.save(Payment.builder().date(Instant.now()).balance(paymentIn.getBalance())
+						.sourceCurrencyType(currencyType).destinedBankAccount(bankAccount).build()));
+	}
+
+	@Override
+	public List<PaymentOut> findAllByBankAccountId(Long bankAccountId) {
+		if (!bankAccountRepository.existsById(bankAccountId)) {
+			throw new RuntimeException("Bank account not found");
+		}
+		return paymentRepository.findAllByDestinedBankAccount_Id(bankAccountId).stream().map(paymentMapper::entityToDto)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<PaymentOut> findAll() {
+		return paymentRepository.findAll().stream().map(paymentMapper::entityToDto).collect(Collectors.toList());
+	}
 }
