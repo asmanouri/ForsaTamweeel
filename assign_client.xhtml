@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<title>Forsa tamweel</title>
+	
+</h:head>
+<body> 
+<div class="card">
+    <h:form id="form">
+ 
+    
+    <p:growl id="messages" showDetail="true"/>
+    
+       <p:dataTable id="dt-agencies" widgetVar="dtAgencies" value="#{AgencyController.agencies}" var="agency" >
+        
+        
+             
+            <p:column headerText="Num">
+                <h:outputText value="#{agency.id}" />
+            </p:column>
+            <p:column headerText="Agency Name">
+                <h:outputText value="#{agency.agencyName}" />
+            </p:column>
+            <p:column headerText="City">
+                <h:outputText value="#{agency.city}" />
+            </p:column>
+            <p:column headerText="Address">
+                <h:outputText value="#{agency.adress}" />
+            </p:column>
+            <p:column headerText="Contact">
+                <h:outputText value="#{agency.contact}" />
+            </p:column>
+            <p:column headerText="Email">
+                <h:outputText value="#{agency.email}" />
+            </p:column>
+            <p:column headerText="Action" exportable="false">
+            
+                <p:commandButton  icon="pi pi-users" styleClass="rounded-button ui-button-secondary" ajax="false" action="#{AgencyController.clientAgency(agency.id)}"></p:commandButton>
+                
+            </p:column>
+            
+             
+        </p:dataTable>
+        
+       
+
+    </h:form>
+</div>
+</body>
+</html>
